@@ -5,7 +5,7 @@
 
     <groupId>com.hendisantika</groupId>
     <artifactId>spring-boot-docker-example</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>spring-boot-docker-example</name>
@@ -45,11 +45,16 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
         <defaultGoal>clean install</defaultGoal>
-        <finalName>app</finalName>
+        <finalName>${project.artifactId}</finalName>
         <pluginManagement>
             <plugins>
 
@@ -146,9 +151,12 @@
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <configuration>
+                    <dockerHost>http://192.168.1.184:2375</dockerHost>
                     <verbose>true</verbose>
                     <images>
                         <image>
+                            <!--别名模式下使用此处的名称-->
+                            <alias>${project.artifactId}</alias>
                             <build>
                                 <assembly>
                                     <descriptorRef>artifact</descriptorRef>
@@ -166,8 +174,14 @@
                             <name>hendisantika/${project.artifactId}:${project.version}</name>
                             <run>
                                 <ports>
-                                    <port>example.port:8080</port>
+                                    <port>8080:8080</port>
                                 </ports>
+                                <restartPolicy>
+                                    <name>on-failure</name>
+                                    <retry>3</retry>
+                                </restartPolicy>
+                                <!--配置运行时容器命名策略为:别名,如果不指定则默认为none,即使用随机分配名称-->
+                                <namingStrategy>alias</namingStrategy>
                             </run>
                         </image>
                     </images>
@@ -184,6 +198,7 @@
                         <id>docker-build</id>
                         <goals>
                             <goal>build</goal>
+                            <goal>start</goal>
                         </goals>
                     </execution>
                     <execution>
